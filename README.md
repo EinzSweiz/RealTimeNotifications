@@ -23,22 +23,30 @@ Fully Dockerized with docker-compose 🐳
 
 🎯 System Architecture
 sequenceDiagram
-    participant WebSocket as WebSocket Client
-    participant FastAPI as FastAPI Server
+    participant Frontend as WebSocket Client
+    participant FastAPI as WebSocket Server
+    participant KafkaProducer as Kafka Producer
     participant Kafka as Kafka Broker
+    participant KafkaConsumer as Kafka Consumer
     participant Redis as Redis Pub/Sub
     participant MongoDB as MongoDB
     participant Celery as Celery Worker
     participant Email as Email Service
 
-    WebSocket ->> FastAPI: Send Notification Event
-    FastAPI ->> Kafka: Publish Event
-    Kafka ->> Consumer: Consume Event
-    Consumer ->> MongoDB: Store Notification
-    Consumer ->> Redis: Publish WebSocket Update
-    Consumer ->> Celery: Trigger Email Notification
+    Frontend ->> FastAPI: Send Notification Event
+    FastAPI ->> KafkaProducer: Forward Event to Kafka
+    KafkaProducer ->> Kafka: Publish Event
+
+    Kafka ->> KafkaConsumer: Consumer Reads Event
+    KafkaConsumer ->> MongoDB: Store Notification
+    KafkaConsumer ->> Redis: Publish WebSocket Update
+    KafkaConsumer ->> Celery: Trigger Email Notification
+
     Celery ->> Email: Send Email
-    Redis ->> WebSocket: Push Notification Update
+
+    Redis ->> FastAPI: Push WebSocket Update
+    FastAPI ->> Frontend: Send Notification to Client
+
 
 
 🚀 How to Run the Project Locally

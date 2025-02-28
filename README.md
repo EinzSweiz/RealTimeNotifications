@@ -45,7 +45,7 @@ sequenceDiagram
 
 1️⃣ Clone the repository
 
-git clone https://github.com/yourusername/event-driven-notifications.git
+git clone https://github.com/EinzSweiz/RealTimeNotifications.git
 cd event-driven-notifications
 docker-compose up --build  # or use Makefile automation
 

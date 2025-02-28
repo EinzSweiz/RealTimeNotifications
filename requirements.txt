@@ -1,0 +1,28 @@
+# Core FastAPI App
+fastapi
+uvicorn
+python-decouple
+pydantic
+
+#Kafka Integration
+confluent-kafka
+aiokafka
+websockets
+
+#Testing
+pytest
+httpx
+pytest-asyncio
+
+
+#redis
+redis>=4.2.0
+
+#RabbitMQTESTING
+aio_pika
+
+#MongoDB
+motor
+
+#Celery
+celery

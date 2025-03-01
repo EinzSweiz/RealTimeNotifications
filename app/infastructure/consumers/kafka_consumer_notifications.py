@@ -5,7 +5,7 @@ from aiokafka import AIOKafkaConsumer
 from app.services.notification_service import NotificationService
 from app.presentation.websocket.websocket_manager import WebsocketManager
 from app.domain.entities.notifications import NotificationType
-from app.infastructure.redis_client import redis_client
+from app.infastructure.repositories.redis_repository import redis_repository
 from app.infastructure.email_service import send_email_task
 from app.infastructure.celery_worker import celery_app
 
@@ -53,7 +53,7 @@ class KafkaNotificationConsumer:
     async def setup_redis(self):
         """Initialize Redis Pub/Sub"""
         try:
-            self.redis_pubsub = await redis_client.get_redis_pubsub()
+            self.redis_pubsub = await redis_repository.get_redis_pubsub()
             logger.info("✅ Connected to Redis Pub/Sub!")
         except Exception as e:
             logger.error(f"❌ Failed to initialize Redis Pub/Sub: {e}")

@@ -3,7 +3,7 @@ import asyncio
 import logging
 from fastapi import WebSocket
 from typing import List, Dict
-from app.infastructure.redis_client import redis_client
+from app.infastructure.repositories.redis_repository import redis_repository
 
 
 logger = logging.getLogger(__name__)
@@ -45,7 +45,7 @@ class WebsocketManager:
 
 
     async def listen_to_redis(self):
-        self.redis_pubsub = await redis_client.get_redis_pubsub()
+        self.redis_pubsub = await redis_repository.get_redis_pubsub()
 
         async with self.redis_pubsub.pubsub() as pubsub:
             await pubsub.subscribe('websocket_channel')

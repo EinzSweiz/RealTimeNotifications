@@ -2,6 +2,8 @@ from fastapi import APIRouter, WebSocket, Path
 from app.presentation.websocket.websocket_manager import ws_manager
 from app.infastructure.kafka_producer import KafkaProducerService
 from typing import Annotated
+from contextlib import asynccontextmanager
+import asyncio
 import json
 
 websocket_router = APIRouter(tags=['Websocket'])
@@ -37,7 +39,7 @@ async def websocket_endpoint(websocket: WebSocket, user_id: Annotated[int, Path(
             print('Topic:', topic)
 
             event['user_id'] = user_id
-            producer.send_message(topic, event)
+            await producer.send_message(topic, event)
 
     except Exception as e:
         print(f"WebSocket Error: {e}")

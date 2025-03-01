@@ -119,6 +119,22 @@ services:
     networks:
       - config
 
+  redis_exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: redis_exporter
+    ports:
+      - "9121:9121"
+    command:
+      - "--redis.addr=redis://redis-node-0:7000"
+      - "--redis.addr=redis://redis-node-1:7001"
+      - "--redis.addr=redis://redis-node-2:7002"
+    networks:
+      - config
+    depends_on:
+      - redis-node-0
+      - redis-node-1
+      - redis-node-2
+
   ### RABBITMQ ###
   rabbitmq:
     image: rabbitmq:management
@@ -201,6 +217,17 @@ services:
     networks:
       - config
 
+  kafka-exporter:
+    image: danielqsj/kafka-exporter
+    container_name: kafka-exporter
+    ports:
+      - "9308:9308"
+    command: "--kafka.server=kafka:9092"
+    networks:
+      - config
+    depends_on:
+      - kafka
+    restart: always
   mongodb:
     image: mongo
     container_name: mongo
@@ -209,7 +236,57 @@ services:
     networks:
       - config
 
+#Monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus  # Persistent storage
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    depends_on:
+      - web
+      - node-exporter
+    networks:
+      - config
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    depends_on:
+      - prometheus
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - config
+    restart: unless-stopped
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    ports:
+      - "9100:9100"
+    networks:
+      - config
+    restart: unless-stopped
+
+
 volumes:
+  celery_beat_volume:
+  kafka_admin_volume:
+  app_volume:
+  mongodb_volume:
+  prometheus_data:
+  grafana-data:
   celery_volume:
   redis_data_0:
   redis_data_1:

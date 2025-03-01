@@ -3,8 +3,12 @@ from app.presentation.websocket.websocket_service import websocket_router
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 from app.presentation.websocket.websocket_manager import ws_manager
+from prometheus_fastapi_instrumentator import Instrumentator
 import asyncio
+from app.infastructure.kafka_producer import KafkaProducerService
 import logging
+
+kafka_producer = KafkaProducerService()
 
 logger = logging.getLogger(__name__)
 
@@ -18,11 +22,14 @@ async def lifespan(app: FastAPI):
     task = asyncio.create_task(ws_manager.start_redis_listener())
     print("📡 Redis listener started!")
     logger.info("📡 Redis listener started!")
+    print("🚀 Starting Kafka Producer...")
+    await kafka_producer.start()
 
     yield  # Run the application
 
     print("🛑 FastAPI Application is shutting down...")
     logger.info("🛑 FastAPI Application is shutting down...")
+    await kafka_producer.stop()
     
     # Cleanup task on shutdown
     task.cancel()
@@ -40,3 +47,5 @@ app.add_middleware(
 
 # ✅ Register Routers
 app.include_router(websocket_router)
+
+Instrumentator().instrument(app).expose(app=app)

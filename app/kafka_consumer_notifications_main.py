@@ -8,16 +8,27 @@ from app.infastructure.database import get_db
 
 
 async def run_consumer():
-
+    """Initialize and run the Kafka Consumer"""
     db = await get_db()
     repository = NotificationRepository(db=db)
     notification_service = NotificationService(repository=repository)
 
     consumer_group = os.getenv("CONSUMER_GROUP", "notification-consumer-group")
-
     kafka_consumer = KafkaNotificationConsumer(notification_service=notification_service, consumer_group=consumer_group)
+
+    await kafka_consumer.start()  # ⬅️ Start the Kafka consumer before consuming messages
     await kafka_consumer.setup_redis()
-    await kafka_consumer.consume_messages()
+
+    try:
+        await kafka_consumer.consume_messages()
+    except asyncio.CancelledError:
+        logging.info("🛑 Kafka Consumer received shutdown signal")
+    finally:
+        await kafka_consumer.stop()  # ⬅️ Ensure the consumer stops properly on shutdown
+
 
 if __name__ == '__main__':
-    asyncio.run(run_consumer())
+    try:
+        asyncio.run(run_consumer())
+    except KeyboardInterrupt:
+        logging.info("🛑 Kafka Consumer Interrupted, shutting down...")
